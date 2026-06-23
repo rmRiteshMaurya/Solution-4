@@ -1,0 +1,95 @@
+public with sharing class TriggerDispatch {
+
+    public static void run() {
+
+        String objectName;
+        
+        if(Trigger.new != null){
+            objectName =
+                Trigger.new[0]
+                .getSObjectType()
+                .getDescribe()
+                .getName();
+        }
+        else{
+            objectName =
+                Trigger.old[0]
+                .getSObjectType()
+                .getDescribe()
+                .getName();
+        }
+
+        List<TriggerConfig__mdt> configs = [
+
+            SELECT SObject_Name__c,
+                   Handler_Class__c,
+                   Is_Active__c,
+                   Execution_Order__c
+
+            FROM TriggerConfig__mdt
+
+            WHERE SObject_Name__c = :objectName
+            AND Is_Active__c = TRUE
+
+            ORDER BY Execution_Order__c
+        ];
+
+        for(TriggerConfig__mdt cfg : configs) {
+
+            Type handlerType =
+                Type.forName(
+                    cfg.Handler_Class__c
+                );
+
+            if(handlerType == null) {
+                continue;
+            }
+
+            TriggerHandler handler =
+                (TriggerHandler)
+                handlerType.newInstance();
+
+            if(Trigger.isBefore &&
+               Trigger.isInsert) {
+
+                handler.beforeInsert(
+                    Trigger.new
+                );
+            }
+
+            if(Trigger.isBefore &&
+               Trigger.isUpdate) {
+
+                handler.beforeUpdate(
+                    Trigger.new,
+                    Trigger.oldMap
+                );
+            }
+
+            if(Trigger.isAfter &&
+               Trigger.isInsert) {
+
+                handler.afterInsert(
+                    Trigger.new
+                );
+            }
+
+            if(Trigger.isAfter &&
+               Trigger.isUpdate) {
+
+                handler.afterUpdate(
+                    Trigger.new,
+                    Trigger.oldMap
+                );
+            }
+
+            if(Trigger.isAfter &&
+               Trigger.isDelete) {
+
+                handler.afterDelete(
+                    Trigger.oldMap
+                );
+            }
+        }
+    }
+}
