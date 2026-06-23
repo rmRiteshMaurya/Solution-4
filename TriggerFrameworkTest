@@ -1,0 +1,54 @@
+@IsTest
+private class TriggerFrameworkTest {
+
+    @IsTest
+    static void testRatingHandler() {
+
+        Account acc =
+            new Account(
+                Name='Test',
+                AnnualRevenue=2000000
+            );
+
+        insert acc;
+
+        Account result =
+            [SELECT Rating
+             FROM Account
+             WHERE Id=:acc.Id];
+
+        System.assertEquals(
+            'Hot',
+            result.Rating
+        );
+    }
+
+    @IsTest
+    static void testValidationHandler() {
+
+        Account acc =
+            new Account(
+                Name='Test',
+                Industry='IT'
+            );
+
+        insert acc;
+
+        Test.startTest();
+
+        acc.Industry = null;
+
+        Database.SaveResult sr =
+            Database.update(
+                acc,
+                false
+            );
+
+        Test.stopTest();
+
+        System.assertEquals(
+            false,
+            sr.isSuccess()
+        );
+    }
+}
