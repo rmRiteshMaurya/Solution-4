@@ -1,0 +1,23 @@
+public class AccountValidationHandler
+extends TriggerHandler {
+
+    public override void beforeUpdate(
+
+        List<SObject> newRecords,
+
+        Map<Id,SObject> oldMap
+    ) {
+
+        for(Account acc :
+            (List<Account>)newRecords) {
+
+            if(String.isBlank(
+                acc.Industry)) {
+
+                acc.addError(
+                    'Industry is required.'
+                );
+            }
+        }
+    }
+}
