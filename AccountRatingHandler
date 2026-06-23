@@ -1,0 +1,18 @@
+public class AccountRatingHandler
+extends TriggerHandler {
+
+    public override void beforeInsert(
+        List<SObject> newRecords
+    ) {
+
+        for(Account acc :
+            (List<Account>)newRecords) {
+
+            if(acc.AnnualRevenue != null &&
+               acc.AnnualRevenue > 1000000) {
+
+                acc.Rating = 'Hot';
+            }
+        }
+    }
+}
